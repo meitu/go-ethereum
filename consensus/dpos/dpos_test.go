@@ -202,30 +202,6 @@ func TestUpdateMintCnt(t *testing.T) {
 	assert.Equal(t, int64(1), afterUpdateCnt)
 }
 
-func TestFindValidator(t *testing.T) {
-	db, _ := ethdb.NewMemDatabase()
-
-	addresses := []common.Address{}
-	for i := 0; i < epochSize; i++ {
-		addresses = append(addresses, common.HexToAddress(MockEpoch[i]))
-	}
-	dposContext, _ := types.NewDposContext(db)
-	dposContext.SetValidators(addresses)
-	epochContext := &EpochContext{DposContext: dposContext}
-
-	// not new epoch interval, but not time to mint block
-	validator, _ := epochContext.lookupValidator(3599)
-	assert.Equal(t, common.Address{}, validator)
-
-	// not new epoch interval, and it's time to mint block
-	validator, _ = epochContext.lookupValidator(3595)
-	assert.NotEqual(t, common.Address{}, validator)
-
-	// new epoch interval
-	validator, _ = epochContext.lookupValidator(3600)
-	assert.NotEqual(t, common.Address{}, validator)
-}
-
 func TestKickoutCandidate(t *testing.T) {
 	validator := common.HexToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e")
 	time := int64(3600)

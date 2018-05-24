@@ -19,7 +19,7 @@ func TestDposContextSnapshot(t *testing.T) {
 	assert.NotEqual(t, dposContext, snapshot)
 
 	// change dposContext
-	assert.Nil(t, dposContext.BecomeCandidate(common.StringToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6c")))
+	assert.Nil(t, dposContext.BecomeCandidate(common.HexToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6c")))
 	assert.NotEqual(t, dposContext.Root(), snapshot.Root())
 
 	// revert snapshot
@@ -30,9 +30,9 @@ func TestDposContextSnapshot(t *testing.T) {
 
 func TestDposContextBecomeCandidate(t *testing.T) {
 	candidates := []common.Address{
-		common.StringToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e"),
-		common.StringToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2"),
-		common.StringToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670"),
+		common.HexToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e"),
+		common.HexToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2"),
+		common.HexToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670"),
 	}
 	db, _ := ethdb.NewMemDatabase()
 	dposContext, err := NewDposContext(db)
@@ -54,9 +54,9 @@ func TestDposContextBecomeCandidate(t *testing.T) {
 
 func TestDposContextKickoutCandidate(t *testing.T) {
 	candidates := []common.Address{
-		common.StringToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e"),
-		common.StringToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2"),
-		common.StringToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670"),
+		common.HexToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e"),
+		common.HexToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2"),
+		common.HexToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670"),
 	}
 	db, _ := ethdb.NewMemDatabase()
 	dposContext, err := NewDposContext(db)
@@ -93,9 +93,9 @@ func TestDposContextKickoutCandidate(t *testing.T) {
 }
 
 func TestDposContextDelegateAndUnDelegate(t *testing.T) {
-	candidate := common.StringToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e")
-	newCandidate := common.StringToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2")
-	delegator := common.StringToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670")
+	candidate := common.HexToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e")
+	newCandidate := common.HexToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2")
+	delegator := common.HexToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670")
 	db, _ := ethdb.NewMemDatabase()
 	dposContext, err := NewDposContext(db)
 	assert.Nil(t, err)
@@ -108,7 +108,7 @@ func TestDposContextDelegateAndUnDelegate(t *testing.T) {
 	for candidateIter.Next() {
 		candidateMap[string(candidateIter.Value)] = true
 	}
-	assert.NotNil(t, dposContext.Delegate(delegator, common.StringToAddress("0xab")))
+	assert.NotNil(t, dposContext.Delegate(delegator, common.HexToAddress("0xab")))
 
 	// delegator delegate to old candidate
 	assert.Nil(t, dposContext.Delegate(delegator, candidate))
@@ -139,7 +139,7 @@ func TestDposContextDelegateAndUnDelegate(t *testing.T) {
 	}
 
 	// delegator undelegate to not exist candidate
-	assert.NotNil(t, dposContext.UnDelegate(common.StringToAddress("0x00"), candidate))
+	assert.NotNil(t, dposContext.UnDelegate(common.HexToAddress("0x00"), candidate))
 
 	// delegator undelegate to old candidate
 	assert.NotNil(t, dposContext.UnDelegate(delegator, candidate))
@@ -154,9 +154,9 @@ func TestDposContextDelegateAndUnDelegate(t *testing.T) {
 
 func TestDposContextValidators(t *testing.T) {
 	validators := []common.Address{
-		common.StringToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e"),
-		common.StringToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2"),
-		common.StringToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670"),
+		common.HexToAddress("0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e"),
+		common.HexToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2"),
+		common.HexToAddress("0x4e080e49f62694554871e669aeb4ebe17c4a9670"),
 	}
 
 	db, _ := ethdb.NewMemDatabase()
