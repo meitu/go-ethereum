@@ -341,8 +341,6 @@ func (self *LightChain) postChainEvents(events []interface{}) {
 				self.chainHeadFeed.Send(core.ChainHeadEvent{Block: ev.Block})
 			}
 			self.chainFeed.Send(ev)
-		case core.ChainSideEvent:
-			self.chainSideFeed.Send(ev)
 		}
 	}
 }
@@ -388,7 +386,6 @@ func (self *LightChain) InsertHeaderChain(chain []*types.Header, checkFreq int) 
 
 		case core.SideStatTy:
 			log.Debug("Inserted forked header", "number", header.Number, "hash", header.Hash())
-			events = append(events, core.ChainSideEvent{Block: types.NewBlockWithHeader(header)})
 		}
 		return err
 	}
@@ -497,11 +494,6 @@ func (self *LightChain) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Sub
 // SubscribeChainHeadEvent registers a subscription of ChainHeadEvent.
 func (self *LightChain) SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription {
 	return self.scope.Track(self.chainHeadFeed.Subscribe(ch))
-}
-
-// SubscribeChainSideEvent registers a subscription of ChainSideEvent.
-func (self *LightChain) SubscribeChainSideEvent(ch chan<- core.ChainSideEvent) event.Subscription {
-	return self.scope.Track(self.chainSideFeed.Subscribe(ch))
 }
 
 // SubscribeLogsEvent implements the interface of filters.Backend
