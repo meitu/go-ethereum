@@ -3,6 +3,7 @@ package dpos
 import (
 	"math/big"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -257,4 +258,102 @@ func getCandidates(candidateTrie *trie.Trie) map[common.Address]bool {
 		candidateMap[common.BytesToAddress(iter.Value)] = true
 	}
 	return candidateMap
+}
+
+func TestEpochContextTryElect(t *testing.T) {
+	db, _ := ethdb.NewMemDatabase()
+	stateDB, _ := state.New(common.Hash{}, state.NewDatabase(db))
+	dposContext, err := types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext := &EpochContext{
+		TimeStamp:   epochInterval,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	atLeastMintCnt := epochInterval / blockInterval / epochSize / 2
+	testEpoch := int64(1)
+	validators := []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		assert.Nil(t, dposContext.Delegate(validator, validator))
+		stateDB.SetBalance(validator, big.NewInt(1))
+		setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt-1)
+	}
+	dposContext.BecomeCandidate(common.StringToAddress("more"))
+	assert.Nil(t, dposContext.SetValidators(validators))
+
+	// genesisEpoch == parentEpoch do not kickout
+	genesis := &types.Header{
+		Time: big.NewInt(0),
+	}
+	parent := &types.Header{
+		Time: big.NewInt(epochInterval - blockInterval),
+	}
+	oldHash := dposContext.EpochTrie().Hash()
+	assert.Nil(t, epochContext.tryElect(genesis, parent))
+	result, err := dposContext.GetValidators()
+	assert.Nil(t, err)
+	assert.Equal(t, epochSize, len(result))
+	for _, validator := range result {
+		assert.True(t, strings.Contains(validator.Str(), "addr"))
+	}
+	assert.NotEqual(t, oldHash, dposContext.EpochTrie().Hash())
+
+	// genesisEpoch != parentEpoch and have none mintCnt do not kickout
+	genesis = &types.Header{
+		Time: big.NewInt(-epochInterval),
+	}
+	parent = &types.Header{
+		Difficulty: big.NewInt(1),
+		Time:       big.NewInt(epochInterval - blockInterval),
+	}
+	epochContext.TimeStamp = epochInterval
+	oldHash = dposContext.EpochTrie().Hash()
+	assert.Nil(t, epochContext.tryElect(genesis, parent))
+	result, err = dposContext.GetValidators()
+	assert.Nil(t, err)
+	assert.Equal(t, epochSize, len(result))
+	for _, validator := range result {
+		assert.True(t, strings.Contains(validator.Str(), "addr"))
+	}
+	assert.NotEqual(t, oldHash, dposContext.EpochTrie().Hash())
+
+	// genesisEpoch != parentEpoch kickout
+	genesis = &types.Header{
+		Time: big.NewInt(0),
+	}
+	parent = &types.Header{
+		Time: big.NewInt(epochInterval*2 - blockInterval),
+	}
+	epochContext.TimeStamp = epochInterval * 2
+	oldHash = dposContext.EpochTrie().Hash()
+	assert.Nil(t, epochContext.tryElect(genesis, parent))
+	result, err = dposContext.GetValidators()
+	assert.Nil(t, err)
+	assert.Equal(t, epochSize, len(result))
+	moreCnt := 0
+	for _, validator := range result {
+		if strings.Contains(validator.Str(), "more") {
+			moreCnt++
+		}
+	}
+	assert.Equal(t, 1, moreCnt)
+	assert.NotEqual(t, oldHash, dposContext.EpochTrie().Hash())
+
+	// parentEpoch == currentEpoch do not elect
+	genesis = &types.Header{
+		Time: big.NewInt(0),
+	}
+	parent = &types.Header{
+		Time: big.NewInt(epochInterval),
+	}
+	epochContext.TimeStamp = epochInterval + blockInterval
+	oldHash = dposContext.EpochTrie().Hash()
+	assert.Nil(t, epochContext.tryElect(genesis, parent))
+	result, err = dposContext.GetValidators()
+	assert.Nil(t, err)
+	assert.Equal(t, epochSize, len(result))
+	assert.Equal(t, oldHash, dposContext.EpochTrie().Hash())
 }

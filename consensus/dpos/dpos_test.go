@@ -1,13 +1,11 @@
 package dpos
 
 import (
-	"math/big"
 	"testing"
 
 	"encoding/binary"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/trie"
@@ -56,42 +54,6 @@ func mockNewDposContext(db ethdb.Database) *types.DposContext {
 	return dposContext
 }
 
-func mockNewBlock(root common.Hash, db *ethdb.MemDatabase, miner string, time int64) *types.Block {
-	dposContext := mockNewDposContext(db)
-	header := &types.Header{
-		ParentHash:  common.Hash{},
-		UncleHash:   common.Hash{},
-		Coinbase:    common.HexToAddress(miner),
-		Root:        root,
-		TxHash:      common.Hash{},
-		ReceiptHash: common.Hash{},
-		DposContext: dposContext.ToProto(),
-		Bloom:       types.Bloom{},
-		Difficulty:  big.NewInt(0),
-		Number:      big.NewInt(0),
-		GasLimit:    big.NewInt(0),
-		GasUsed:     big.NewInt(0),
-		Time:        big.NewInt(time),
-		Extra:       []byte{},
-		MixDigest:   common.Hash{},
-		Nonce:       types.BlockNonce{},
-	}
-	block := types.NewBlock(header, nil, nil, nil)
-	block.DposContext = dposContext
-	return block
-}
-
-func mockNewEpochContext(time int64, validator common.Address) *EpochContext {
-	db, _ := ethdb.NewMemDatabase()
-	stateDB, _ := state.New(common.Hash{}, state.NewDatabase(db))
-	epochContext := &EpochContext{
-		time,
-		mockNewDposContext(db),
-		stateDB,
-	}
-	return epochContext
-}
-
 func setMintCntTrie(epochID int64, candidate common.Address, mintCntTrie *trie.Trie, count int64) {
 	key := make([]byte, 8)
 	binary.BigEndian.PutUint64(key, uint64(epochID))
@@ -109,59 +71,6 @@ func getMintCnt(epochID int64, candidate common.Address, mintCntTrie *trie.Trie)
 	} else {
 		return int64(binary.BigEndian.Uint64(cntBytes))
 	}
-}
-
-func TestTryElect(t *testing.T) {
-	db, _ := ethdb.NewMemDatabase()
-	stateDB, _ := state.New(common.Hash{}, state.NewDatabase(db))
-
-	addresses := []common.Address{}
-	for i := 0; i < len(MockEpoch); i++ {
-		addr := common.StringToAddress(MockEpoch[i])
-		addresses = append(addresses, addr)
-		bal := int64(1000 * (i + 1))
-		stateDB.CreateAccount(addr)
-		stateDB.SetBalance(addr, big.NewInt(bal))
-	}
-	root := stateDB.IntermediateRoot(false)
-
-	genesis := mockNewBlock(root, db, "0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6c", 0)
-	parent := mockNewBlock(root, db, "0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e", 3600)
-
-	// forge 3 candidates mint count（only MockEpoch[1] not satisfy: cnt>=epochInterval/blockInterval/epochSize/2=120 ）
-	setMintCntTrie(parent.Time().Int64()/epochInterval, common.HexToAddress(MockEpoch[0]), parent.DposContext.MintCntTrie(), int64(256))
-	setMintCntTrie(parent.Time().Int64()/epochInterval, common.HexToAddress(MockEpoch[1]), parent.DposContext.MintCntTrie(), int64(100))
-	setMintCntTrie(parent.Time().Int64()/epochInterval, common.HexToAddress(MockEpoch[2]), parent.DposContext.MintCntTrie(), int64(360))
-
-	dposContextBeforeElection := parent.DposContext
-	dposContextAfterElection := dposContextBeforeElection
-	assert.NotEqual(t, dposContextBeforeElection, nil)
-
-	epochContext := &EpochContext{
-		statedb:     stateDB,
-		DposContext: dposContextAfterElection,
-		TimeStamp:   3700,
-	}
-	// now(=3700) is still in the same epoch with parent,
-	// preDposContext will be not changed
-	epochContext.tryElect(genesis.Header(), parent.Header())
-	assert.NotEqual(t, dposContextAfterElection, nil)
-
-	// and MockEpoch[1] is still in DposContext
-	assert.NotEqual(t, nil, dposContextAfterElection.CandidateTrie().Get(common.HexToAddress(MockEpoch[1]).Bytes()))
-	assert.NotEqual(t, nil, dposContextAfterElection.DelegateTrie().Get(common.HexToAddress(MockEpoch[1]).Bytes()))
-	assert.NotEqual(t, nil, dposContextAfterElection.VoteTrie().Get(common.HexToAddress(MockEpoch[1]).Bytes()))
-
-	// now(=7200) comes to a new epoch ,
-	// preDposContext will be changed
-	epochContext.TimeStamp = 7200
-	epochContext.tryElect(genesis.Header(), parent.Header())
-	assert.NotEqual(t, dposContextAfterElection, nil)
-	// todo: safeSize = 3 no candidate can be kickout
-	//  MockEpoch[1] is kickout from dposContext
-	//assert.Equal(t, []byte(nil), dposContextAfterElection.CandidateTrie().Get(common.HexToAddress(MockEpoch[1]).Bytes()))
-	//assert.Equal(t, []byte(nil), dposContextAfterElection.DelegateTrie().Get(common.HexToAddress(MockEpoch[1]).Bytes()))
-	//assert.Equal(t, []byte(nil), dposContextAfterElection.VoteTrie().Get(common.HexToAddress(MockEpoch[1]).Bytes()))
 }
 
 func TestUpdateMintCnt(t *testing.T) {
