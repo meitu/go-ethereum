@@ -1461,11 +1461,31 @@ func (d *Downloader) commitPivotBlock(result *fetchResult) error {
 	if err := d.syncState(b.Root()).Wait(); err != nil {
 		return err
 	}
+	if err := d.syncDposContextState(b.Header().DposContext); err != nil {
+		return err
+	}
 	log.Debug("Committing fast sync pivot as new head", "number", b.Number(), "hash", b.Hash())
 	if _, err := d.blockchain.InsertReceiptChain([]*types.Block{b}, []types.Receipts{result.Receipts}); err != nil {
 		return err
 	}
 	return d.blockchain.FastSyncCommitHead(b.Hash())
+}
+
+// Todo: sync dpos context in concurrent
+func (d *Downloader) syncDposContextState(context *types.DposContextProto) error {
+	roots := []common.Hash{
+		context.CandidateHash,
+		context.DelegateHash,
+		context.VoteHash,
+		context.EpochHash,
+		context.MintCntHash,
+	}
+	for _, root := range roots {
+		if err := d.syncState(root).Wait(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // DeliverHeaders injects a new batch of block headers received from a remote
