@@ -20,8 +20,6 @@ import (
 	"math/big"
 	"os"
 	"os/user"
-	"path/filepath"
-	"runtime"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -33,16 +31,11 @@ import (
 
 // DefaultConfig contains default settings for use on the Ethereum main net.
 var DefaultConfig = Config{
-	SyncMode:             downloader.FastSync,
-	EthashCacheDir:       "ethash",
-	EthashCachesInMem:    2,
-	EthashCachesOnDisk:   3,
-	EthashDatasetsInMem:  1,
-	EthashDatasetsOnDisk: 2,
-	NetworkId:            1,
-	LightPeers:           20,
-	DatabaseCache:        128,
-	GasPrice:             big.NewInt(18 * params.Shannon),
+	SyncMode:      downloader.FullSync,
+	NetworkId:     1357,
+	LightPeers:    20,
+	DatabaseCache: 128,
+	GasPrice:      big.NewInt(18 * params.Shannon),
 
 	TxPool: core.DefaultTxPoolConfig,
 	GPO: gasprice.Config{
@@ -57,11 +50,6 @@ func init() {
 		if user, err := user.Current(); err == nil {
 			home = user.HomeDir
 		}
-	}
-	if runtime.GOOS == "windows" {
-		DefaultConfig.EthashDatasetDir = filepath.Join(home, "AppData", "Ethash")
-	} else {
-		DefaultConfig.EthashDatasetDir = filepath.Join(home, ".ethash")
 	}
 }
 
@@ -86,18 +74,11 @@ type Config struct {
 	DatabaseCache      int
 
 	// Mining-related options
-	Etherbase    common.Address `toml:",omitempty"`
+	Validator    common.Address `toml:",omitempty"`
+	Coinbase     common.Address `toml:",omitempty"`
 	MinerThreads int            `toml:",omitempty"`
 	ExtraData    []byte         `toml:",omitempty"`
 	GasPrice     *big.Int
-
-	// Ethash options
-	EthashCacheDir       string
-	EthashCachesInMem    int
-	EthashCachesOnDisk   int
-	EthashDatasetDir     string
-	EthashDatasetsInMem  int
-	EthashDatasetsOnDisk int
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig
@@ -113,6 +94,7 @@ type Config struct {
 	PowFake   bool   `toml:"-"`
 	PowTest   bool   `toml:"-"`
 	PowShared bool   `toml:"-"`
+	Dpos      bool   `toml:"-"`
 }
 
 type configMarshaling struct {
