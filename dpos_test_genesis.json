@@ -5,10 +5,8 @@
         "eip158Block": 0,
         "byzantiumBlock":0,
         "dpos":{
-            "period": 5,
-            "epoch":  30000,
             "validators":[
-                "0x44d1ce0b7cb3588bca96151fe1bc05af38f91b6e", 
+                "0x52453fe215a7ef77b1cf7761ec54b336d02727df",
                 "0xa60a3886b552ff9992cfcd208ec1152079e046c2",
                 "0xab2e146f1e261cb42038fdd672d035dd1e002c78"
             ]
@@ -22,15 +20,5 @@
     "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "extraData": "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa",
     "gasLimit": "0x500000",
-    "alloc": {
-        "1a263547d167c74cf4b8f9166cfa244de0481c51": {
-            "balance": "10000000000000000000000"
-        },
-        "2fe3f9f51f9a05dd5f7c5329127f7c917917149b": {
-            "balance": "10000000000000000000000"
-        },
-        "333cb3ed8c417971845382ede3cf67a0a96270c0": {
-            "balance": "10000000000000000000000"
-        }
-    }
+    "alloc": {}
 }
