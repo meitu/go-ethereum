@@ -100,6 +100,16 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 	return nil
 }
 
+func (v *BlockValidator) ValidateDposState(block *types.Block) error {
+	header := block.Header()
+	localRoot := block.DposCtx().Root()
+	remoteRoot := header.DposContext.Root()
+	if remoteRoot != localRoot {
+		return fmt.Errorf("invalid dpos root (remote: %x local: %x)", remoteRoot, localRoot)
+	}
+	return nil
+}
+
 // CalcGasLimit computes the gas limit of the next block after parent.
 // The result may be modified by the caller.
 // This is miner strategy, not consensus protocol.

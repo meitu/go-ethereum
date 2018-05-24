@@ -32,6 +32,7 @@ import (
 // at github.com/ethereum/tests.
 var (
 	emptyTx = NewTransaction(
+		Binary,
 		0,
 		common.HexToAddress("095e7baea6a6c7c4c2dfeb977efac326af552d87"),
 		big.NewInt(0), big.NewInt(0), big.NewInt(0),
@@ -39,6 +40,7 @@ var (
 	)
 
 	rightvrsTx, _ = NewTransaction(
+		Binary,
 		3,
 		common.HexToAddress("b94f5374fce5edbc8e2a8697c15331677e6ebf0b"),
 		big.NewInt(10),
@@ -62,13 +64,14 @@ func TestTransactionSigHash(t *testing.T) {
 }
 
 func TestTransactionEncode(t *testing.T) {
-	txb, err := rlp.EncodeToBytes(rightvrsTx)
+	txa, err := rlp.EncodeToBytes(rightvrsTx)
 	if err != nil {
 		t.Fatalf("encode error: %v", err)
 	}
-	should := common.FromHex("f86103018207d094b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a8255441ca098ff921201554726367d2be8c804a7ff89ccf285ebc57dff8ae4c44b9c19ac4aa08887321be575c8095f789dd4c743dfe42c1820f9231f98a962b210e3ac2452a3")
-	if !bytes.Equal(txb, should) {
-		t.Errorf("encoded RLP mismatch, got %x", txb)
+	tx, _ := decodeTx(txa)
+	txb, _ := rlp.EncodeToBytes(tx)
+	if !bytes.Equal(txa, txb) {
+		t.Errorf("encoded RLP mismatch, expect %x got %x", txa, txb)
 	}
 }
 
@@ -83,44 +86,6 @@ func defaultTestKey() (*ecdsa.PrivateKey, common.Address) {
 	key, _ := crypto.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 	return key, addr
-}
-
-func TestRecipientEmpty(t *testing.T) {
-	_, addr := defaultTestKey()
-	tx, err := decodeTx(common.Hex2Bytes("f8498080808080011ca09b16de9d5bdee2cf56c28d16275a4da68cd30273e2525f3959f5d62557489921a0372ebd8fb3345f7db7b5a86d42e24d36e983e259b0664ceb8c227ec9af572f3d"))
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-
-	from, err := Sender(HomesteadSigner{}, tx)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	if addr != from {
-		t.Error("derived address doesn't match")
-	}
-}
-
-func TestRecipientNormal(t *testing.T) {
-	_, addr := defaultTestKey()
-
-	tx, err := decodeTx(common.Hex2Bytes("f85d80808094000000000000000000000000000000000000000080011ca0527c0d8f5c63f7b9f41324a7c8a563ee1190bcbf0dac8ab446291bdbf32f5c79a0552c4ef0a09a04395074dab9ed34d3fbfb843c2f2546cc30fe89ec143ca94ca6"))
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-
-	from, err := Sender(HomesteadSigner{}, tx)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-
-	if addr != from {
-		t.Error("derived address doesn't match")
-	}
 }
 
 // Tests that transactions can be correctly sorted according to their price in
@@ -139,7 +104,7 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 	for start, key := range keys {
 		addr := crypto.PubkeyToAddress(key.PublicKey)
 		for i := 0; i < 25; i++ {
-			tx, _ := SignTx(NewTransaction(uint64(start+i), common.Address{}, big.NewInt(100), big.NewInt(100), big.NewInt(int64(start+i)), nil), signer, key)
+			tx, _ := SignTx(NewTransaction(Binary, uint64(start+i), common.Address{}, big.NewInt(100), big.NewInt(100), big.NewInt(int64(start+i)), nil), signer, key)
 			groups[addr] = append(groups[addr], tx)
 		}
 	}
@@ -204,7 +169,7 @@ func TestTransactionJSON(t *testing.T) {
 		var tx *Transaction
 		switch i % 2 {
 		case 0:
-			tx = NewTransaction(i, common.Address{1}, common.Big0, common.Big1, common.Big2, []byte("abcdef"))
+			tx = NewTransaction(Binary, i, common.Address{1}, common.Big0, common.Big1, common.Big2, []byte("abcdef"))
 		case 1:
 			tx = NewContractCreation(i, common.Big0, common.Big1, common.Big2, []byte("abcdef"))
 		}
@@ -230,6 +195,33 @@ func TestTransactionJSON(t *testing.T) {
 		}
 		if tx.ChainId().Cmp(parsedTx.ChainId()) != 0 {
 			t.Errorf("invalid chain id, want %d, got %d", tx.ChainId(), parsedTx.ChainId())
+		}
+	}
+}
+
+func TestTransactionValidate(t *testing.T) {
+	validTransactions := []*Transaction{
+		newTransaction(Binary, 0, nil, common.Big0, common.Big1, common.Big2, []byte("abcdef")),
+		newTransaction(LoginCandidate, 0, nil, common.Big0, common.Big1, common.Big2, nil),
+		newTransaction(LogoutCandidate, 0, &common.Address{1}, common.Big0, common.Big1, common.Big2, nil),
+		newTransaction(UnDelegate, 0, &common.Address{1}, common.Big0, common.Big1, common.Big2, nil),
+	}
+	invalidTransactions := []*Transaction{
+		// value = 0 is invalid when the type isn't binary
+		newTransaction(LoginCandidate, 0, nil, common.Big1, common.Big1, common.Big2, nil),
+		// to = nil is invalid when the type isn't binary
+		newTransaction(Delegate, 0, nil, common.Big0, common.Big1, common.Big2, nil),
+		// payload != nil is invalid when the type isn't binary
+		newTransaction(UnDelegate, 0, &common.Address{1}, common.Big0, common.Big1, common.Big2, []byte("abcddf")),
+	}
+	for _, tx := range validTransactions {
+		if err := tx.Validate(); err != nil {
+			t.Errorf("transaction valid was expected, but got error %s", err)
+		}
+	}
+	for _, tx := range invalidTransactions {
+		if tx.Validate() == nil {
+			t.Errorf("transaction invalid was expected, but got nil")
 		}
 	}
 }
