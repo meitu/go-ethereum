@@ -142,7 +142,7 @@ func (ec *EpochContext) lookupValidator(now int64) (validator common.Address, er
 	if int(offset) < len(validators) {
 		validator = validators[offset]
 	} else {
-		return common.Address{}, errors.New("no validator")
+		return common.Address{}, errors.New("failed to lookup validator")
 	}
 	return validator, nil
 }
