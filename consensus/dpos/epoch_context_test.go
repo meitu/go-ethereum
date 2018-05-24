@@ -1,13 +1,15 @@
 package dpos
 
 import (
-	"testing"
 	"math/big"
+	"strconv"
+	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/trie"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -80,4 +82,179 @@ func TestLookupValidator(t *testing.T) {
 	if err != ErrInvalidMintBlockTime {
 		t.Errorf("Failed to test lookup validator. err '%v' was expected but got '%v'", ErrInvalidMintBlockTime, err)
 	}
+}
+
+func TestEpochContextKickoutValidator(t *testing.T) {
+	db, _ := ethdb.NewMemDatabase()
+	stateDB, _ := state.New(common.Hash{}, state.NewDatabase(db))
+	dposContext, err := types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext := &EpochContext{
+		TimeStamp:   epochInterval,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	atLeastMintCnt := epochInterval / blockInterval / epochSize / 2
+	testEpoch := int64(1)
+
+	// no validator can be kickout, because all validators mint enough block at least
+	validators := []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt)
+	}
+	assert.Nil(t, dposContext.SetValidators(validators))
+	assert.Nil(t, dposContext.BecomeCandidate(common.StringToAddress("addr")))
+	assert.Nil(t, epochContext.kickoutValidator(testEpoch))
+	candidateMap := getCandidates(dposContext.CandidateTrie())
+	assert.Equal(t, epochSize+1, len(candidateMap))
+
+	// atLeast a safeSize count candidate will reserve
+	dposContext, err = types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext = &EpochContext{
+		TimeStamp:   epochInterval,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	validators = []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt-int64(i)-1)
+	}
+	assert.Nil(t, dposContext.SetValidators(validators))
+	assert.Nil(t, epochContext.kickoutValidator(testEpoch))
+	candidateMap = getCandidates(dposContext.CandidateTrie())
+	assert.Equal(t, safeSize, len(candidateMap))
+	for i := epochSize - 1; i >= safeSize; i-- {
+		assert.False(t, candidateMap[common.StringToAddress("addr"+strconv.Itoa(i))])
+	}
+
+	// all validator will be kickout, because all validators didn't mint enough block at least
+	dposContext, err = types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext = &EpochContext{
+		TimeStamp:   epochInterval,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	validators = []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt-1)
+	}
+	for i := epochSize; i < epochSize*2; i++ {
+		candidate := common.StringToAddress("addr" + strconv.Itoa(i))
+		assert.Nil(t, dposContext.BecomeCandidate(candidate))
+	}
+	assert.Nil(t, dposContext.SetValidators(validators))
+	assert.Nil(t, epochContext.kickoutValidator(testEpoch))
+	candidateMap = getCandidates(dposContext.CandidateTrie())
+	assert.Equal(t, epochSize, len(candidateMap))
+
+	// only one validator mint count is not enough
+	dposContext, err = types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext = &EpochContext{
+		TimeStamp:   epochInterval,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	validators = []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		if i == 0 {
+			setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt-1)
+		} else {
+			setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt)
+		}
+	}
+	assert.Nil(t, dposContext.BecomeCandidate(common.StringToAddress("addr")))
+	assert.Nil(t, dposContext.SetValidators(validators))
+	assert.Nil(t, epochContext.kickoutValidator(testEpoch))
+	candidateMap = getCandidates(dposContext.CandidateTrie())
+	assert.Equal(t, epochSize, len(candidateMap))
+	assert.False(t, candidateMap[common.StringToAddress("addr"+strconv.Itoa(0))])
+
+	// epochTime is not complete, all validators mint enough block at least
+	dposContext, err = types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext = &EpochContext{
+		TimeStamp:   epochInterval / 2,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	validators = []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt/2)
+	}
+	for i := epochSize; i < epochSize*2; i++ {
+		candidate := common.StringToAddress("addr" + strconv.Itoa(i))
+		assert.Nil(t, dposContext.BecomeCandidate(candidate))
+	}
+	assert.Nil(t, dposContext.SetValidators(validators))
+	assert.Nil(t, epochContext.kickoutValidator(testEpoch))
+	candidateMap = getCandidates(dposContext.CandidateTrie())
+	assert.Equal(t, epochSize*2, len(candidateMap))
+
+	// epochTime is not complete, all validators didn't mint enough block at least
+	dposContext, err = types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext = &EpochContext{
+		TimeStamp:   epochInterval / 2,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	validators = []common.Address{}
+	for i := 0; i < epochSize; i++ {
+		validator := common.StringToAddress("addr" + strconv.Itoa(i))
+		validators = append(validators, validator)
+		assert.Nil(t, dposContext.BecomeCandidate(validator))
+		setTestMintCnt(dposContext, testEpoch, validator, atLeastMintCnt/2-1)
+	}
+	for i := epochSize; i < epochSize*2; i++ {
+		candidate := common.StringToAddress("addr" + strconv.Itoa(i))
+		assert.Nil(t, dposContext.BecomeCandidate(candidate))
+	}
+	assert.Nil(t, dposContext.SetValidators(validators))
+	assert.Nil(t, epochContext.kickoutValidator(testEpoch))
+	candidateMap = getCandidates(dposContext.CandidateTrie())
+	assert.Equal(t, epochSize, len(candidateMap))
+
+	dposContext, err = types.NewDposContext(db)
+	assert.Nil(t, err)
+	epochContext = &EpochContext{
+		TimeStamp:   epochInterval / 2,
+		DposContext: dposContext,
+		statedb:     stateDB,
+	}
+	assert.NotNil(t, epochContext.kickoutValidator(testEpoch))
+	dposContext.SetValidators([]common.Address{})
+	assert.NotNil(t, epochContext.kickoutValidator(testEpoch))
+}
+
+func setTestMintCnt(dposContext *types.DposContext, epoch int64, validator common.Address, count int64) {
+	for i := int64(0); i < count; i++ {
+		updateMintCnt(epoch*epochInterval, epoch*epochInterval+blockInterval, validator, dposContext)
+	}
+}
+
+func getCandidates(candidateTrie *trie.Trie) map[common.Address]bool {
+	candidateMap := map[common.Address]bool{}
+	iter := trie.NewIterator(candidateTrie.NodeIterator(nil))
+	for iter.Next() {
+		candidateMap[common.BytesToAddress(iter.Value)] = true
+	}
+	return candidateMap
 }
