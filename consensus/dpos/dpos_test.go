@@ -29,6 +29,12 @@ var (
 		"0xf78b011e639ce6d8b76f97712118f3fe4a12dd95",
 		"0x8db3b6c801dddd624d6ddc2088aa64b5a2493661",
 		"0x751b484bd5296f8d267a8537d33f25a848f7f7af",
+		"0x646ba1fa42eb940aac67103a71e9a908ef484ec3",
+		"0x34d4a8d9f6b53a8f5e674516cb8ad66c843b2801",
+		"0x5b76fff970bf8a351c1c9ebfb5e5a9493e956ddd",
+		"0x8da3c5aedaf106c61cfee6d8483e1f255fdd60c0",
+		"0x2cdbe87a1bd7ee60dd6fe97f7b2d1efbacd5d95d",
+		"0x743415d0e979dc6e426bc8189e40beb65bf5ac1d",
 	}
 )
 
@@ -78,10 +84,10 @@ func TestUpdateMintCnt(t *testing.T) {
 	dposContext := mockNewDposContext(db)
 
 	// new block still in the same epoch with current block, but newMiner is the first time to mint in the epoch
-	lastTime := int64(3600)
+	lastTime := int64(epochInterval)
 
 	miner := common.HexToAddress("0xa60a3886b552ff9992cfcd208ec1152079e046c2")
-	blockTime := int64(3605)
+	blockTime := int64(epochInterval + blockInterval)
 
 	beforeUpdateCnt := getMintCnt(blockTime/epochInterval, miner, dposContext.MintCntTrie())
 	updateMintCnt(lastTime, blockTime, miner, dposContext)
@@ -92,7 +98,7 @@ func TestUpdateMintCnt(t *testing.T) {
 	// new block still in the same epoch with current block, and newMiner has mint block before in the epoch
 	setMintCntTrie(blockTime/epochInterval, miner, dposContext.MintCntTrie(), int64(1))
 
-	blockTime = 3620
+	blockTime = epochInterval + blockInterval*4
 
 	// currentBlock has recorded the count for the newMiner before UpdateMintCnt
 	beforeUpdateCnt = getMintCnt(blockTime/epochInterval, miner, dposContext.MintCntTrie())
@@ -102,7 +108,7 @@ func TestUpdateMintCnt(t *testing.T) {
 	assert.Equal(t, int64(2), afterUpdateCnt)
 
 	// new block come to a new epoch
-	blockTime = 7200
+	blockTime = epochInterval * 2
 
 	beforeUpdateCnt = getMintCnt(blockTime/epochInterval, miner, dposContext.MintCntTrie())
 	updateMintCnt(lastTime, blockTime, miner, dposContext)

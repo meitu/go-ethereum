@@ -332,7 +332,7 @@ func TestEpochContextTryElect(t *testing.T) {
 	assert.Nil(t, epochContext.tryElect(genesis, parent))
 	result, err = dposContext.GetValidators()
 	assert.Nil(t, err)
-	assert.Equal(t, epochSize, len(result))
+	assert.Equal(t, safeSize, len(result))
 	moreCnt := 0
 	for _, validator := range result {
 		if strings.Contains(validator.Str(), "more") {
@@ -354,6 +354,6 @@ func TestEpochContextTryElect(t *testing.T) {
 	assert.Nil(t, epochContext.tryElect(genesis, parent))
 	result, err = dposContext.GetValidators()
 	assert.Nil(t, err)
-	assert.Equal(t, epochSize, len(result))
+	assert.Equal(t, safeSize, len(result))
 	assert.Equal(t, oldHash, dposContext.EpochTrie().Hash())
 }
