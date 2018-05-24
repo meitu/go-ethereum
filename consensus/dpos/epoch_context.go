@@ -88,7 +88,7 @@ func (ec *EpochContext) kickoutValidator(epoch int64) error {
 		if cntBytes := ec.DposContext.MintCntTrie().Get(key); cntBytes != nil {
 			cnt = int64(binary.BigEndian.Uint64(cntBytes))
 		}
-		if cnt < epochDuration/blockInterval/epochSize/2 {
+		if cnt < epochDuration/blockInterval/ maxValidatorSize /2 {
 			// not active validators need kickout
 			needKickoutValidators = append(needKickoutValidators, &sortableAddress{validator, big.NewInt(cnt)})
 		}
@@ -133,7 +133,7 @@ func (ec *EpochContext) lookupValidator(now int64) (validator common.Address, er
 		return common.Address{}, ErrInvalidMintBlockTime
 	}
 	offset /= blockInterval
-	offset %= epochSize
+	offset %= maxValidatorSize
 
 	validators, err := ec.DposContext.GetValidators()
 	if err != nil {
@@ -179,8 +179,8 @@ func (ec *EpochContext) tryElect(genesis, parent *types.Header) error {
 			return errors.New("too few candidates")
 		}
 		sort.Sort(candidates)
-		if len(candidates) > epochSize {
-			candidates = candidates[:epochSize]
+		if len(candidates) > maxValidatorSize {
+			candidates = candidates[:maxValidatorSize]
 		}
 
 		// shuffle candidates

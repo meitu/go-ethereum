@@ -46,7 +46,7 @@ func mockNewDposContext(db ethdb.Database) *types.DposContext {
 	delegator := []byte{}
 	candidate := []byte{}
 	addresses := []common.Address{}
-	for i := 0; i < epochSize; i++ {
+	for i := 0; i < maxValidatorSize; i++ {
 		addresses = append(addresses, common.HexToAddress(MockEpoch[i]))
 	}
 	dposContext.SetValidators(addresses)
