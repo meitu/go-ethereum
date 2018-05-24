@@ -372,3 +372,106 @@ func checkIteratorNoDups(t *testing.T, it NodeIterator, seen map[string]bool) in
 	}
 	return len(seen)
 }
+
+func TestPrefixIterator(t *testing.T) {
+	trie := newEmpty()
+	vals := []struct{ k, v string }{
+		{"do", "verb"},
+		{"ether", "wookiedoo"},
+		{"horse", "stallion"},
+		{"shaman", "horse"},
+		{"doge", "coin"},
+		{"dog", "puppy"},
+		{"somethingveryoddindeedthis is", "myothernodedata"},
+		{"drive", "car"},
+		{"dollar", "cny"},
+		{"dxracer", "chair"},
+	}
+	all := make(map[string]string)
+	for _, val := range vals {
+		all[val.k] = val.v
+		trie.Update([]byte(val.k), []byte(val.v))
+	}
+	trie.Commit()
+
+	expect := map[string]string{
+		"doge":   "coin",
+		"dog":    "puppy",
+		"dollar": "cny",
+		"do":     "verb",
+	}
+	found := make(map[string]string)
+	it := NewIterator(trie.PrefixIterator([]byte("do")))
+	for it.Next() {
+		found[string(it.Key)] = string(it.Value)
+	}
+
+	for k, v := range found {
+		if expect[k] != v {
+			t.Errorf("iterator value mismatch for %s: got %v want %v", k, v, expect[k])
+		}
+	}
+	for k, v := range expect {
+		if found[k] != v {
+			t.Errorf("iterator value mismatch for %s: got %v want %v", k, found[k], v)
+		}
+	}
+
+	expect = map[string]string{
+		"doge": "coin",
+		"dog":  "puppy",
+	}
+	found = make(map[string]string)
+	it = NewIterator(trie.PrefixIterator([]byte("dog")))
+	for it.Next() {
+		found[string(it.Key)] = string(it.Value)
+	}
+
+	for k, v := range found {
+		if expect[k] != v {
+			t.Errorf("iterator value mismatch for %s: got %v want %v", k, v, expect[k])
+		}
+	}
+	for k, v := range expect {
+		if found[k] != v {
+			t.Errorf("iterator value mismatch for %s: got %v want %v", k, found[k], v)
+		}
+	}
+
+	found = make(map[string]string)
+	it = NewIterator(trie.PrefixIterator([]byte("test")))
+	for it.Next() {
+		found[string(it.Key)] = string(it.Value)
+	}
+	if len(found) > 0 {
+		t.Errorf("iterator value count mismatch: got %v want %v", len(found), 0)
+	}
+
+	expect = map[string]string{
+		"do":     "verb",
+		"ether":  "wookiedoo",
+		"horse":  "stallion",
+		"shaman": "horse",
+		"doge":   "coin",
+		"dog":    "puppy",
+		"somethingveryoddindeedthis is": "myothernodedata",
+		"drive":   "car",
+		"dollar":  "cny",
+		"dxracer": "chair",
+	}
+	found = make(map[string]string)
+	it = NewIterator(trie.PrefixIterator(nil))
+	for it.Next() {
+		found[string(it.Key)] = string(it.Value)
+	}
+	for k, v := range found {
+		if expect[k] != v {
+			t.Errorf("iterator value mismatch for %s: got %v want %v", k, v, expect[k])
+		}
+	}
+	for k, v := range expect {
+		if found[k] != v {
+			t.Errorf("iterator value mismatch for %s: got %v want %v", k, found[k], v)
+		}
+	}
+}
