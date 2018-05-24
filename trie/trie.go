@@ -86,6 +86,7 @@ type Trie struct {
 	root         node
 	db           Database
 	originalRoot common.Hash
+	prefix       []byte
 
 	// Cache generation values.
 	// cachegen increases by one with each commit operation.
@@ -126,10 +127,31 @@ func New(root common.Hash, db Database) (*Trie, error) {
 	return trie, nil
 }
 
+func NewTrieWithPrefix(root common.Hash, prefix []byte, db Database) (*Trie, error) {
+	trie, err := New(root, db)
+	if err != nil {
+		return nil, err
+	}
+	trie.prefix = prefix
+	return trie, nil
+}
+
 // NodeIterator returns an iterator that returns nodes of the trie. Iteration starts at
 // the key after the given start key.
 func (t *Trie) NodeIterator(start []byte) NodeIterator {
+	if t.prefix != nil {
+		start = append(t.prefix, start...)
+	}
 	return newNodeIterator(t, start)
+}
+
+// PrefixIterator returns an iterator that returns nodes of the trie which has the prefix path specificed
+// Iteration starts at the key after the given start key.
+func (t *Trie) PrefixIterator(prefix []byte) NodeIterator {
+	if t.prefix != nil {
+		prefix = append(t.prefix, prefix...)
+	}
+	return newPrefixIterator(t, prefix)
 }
 
 // Get returns the value for key stored in the trie.
@@ -146,6 +168,9 @@ func (t *Trie) Get(key []byte) []byte {
 // The value bytes must not be modified by the caller.
 // If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryGet(key []byte) ([]byte, error) {
+	if t.prefix != nil {
+		key = append(t.prefix, key...)
+	}
 	key = keybytesToHex(key)
 	value, newroot, didResolve, err := t.tryGet(t.root, key, 0)
 	if err == nil && didResolve {
@@ -213,6 +238,9 @@ func (t *Trie) Update(key, value []byte) {
 //
 // If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryUpdate(key, value []byte) error {
+	if t.prefix != nil {
+		key = append(t.prefix, key...)
+	}
 	k := keybytesToHex(key)
 	if len(value) != 0 {
 		_, n, err := t.insert(t.root, nil, k, valueNode(value))
@@ -309,6 +337,9 @@ func (t *Trie) Delete(key []byte) {
 // TryDelete removes any existing value for key from the trie.
 // If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryDelete(key []byte) error {
+	if t.prefix != nil {
+		key = append(t.prefix, key...)
+	}
 	k := keybytesToHex(key)
 	_, n, err := t.delete(t.root, nil, k)
 	if err != nil {
