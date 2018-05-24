@@ -5462,6 +5462,10 @@ var methods = function () {
 var properties = function () {
     return [
         new Property({
+            name: 'validator',
+            getter: 'eth_validator'
+        }),
+        new Property({
             name: 'coinbase',
             getter: 'eth_coinbase'
         }),
