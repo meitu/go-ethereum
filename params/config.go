@@ -39,10 +39,7 @@ var (
 		EIP158Block:    big.NewInt(0),
 		ByzantiumBlock: big.NewInt(0),
 
-		Dpos: &DposConfig{
-			Period: 5,
-			Epoch:  30000,
-		},
+		Dpos: &DposConfig{},
 	}
 	TestChainConfig          = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil}
 	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil}
@@ -87,8 +84,6 @@ func (c *CliqueConfig) String() string {
 
 // DposConfig is the consensus engine configs for delegated proof-of-stake based sealing.
 type DposConfig struct {
-	Period     uint64           `json:"period"`     // Number of seconds between blocks to enforce
-	Epoch      uint64           `json:"epoch"`      // Epoch length to reset votes and checkpoint
 	Validators []common.Address `json:"validators"` // Genesis validator list
 }
 
