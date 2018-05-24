@@ -26,7 +26,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
 )
 
 // Genesis block for nodes which don't care about the DAO fork (i.e. not configured)
@@ -79,27 +78,6 @@ var daoProForkGenesis = `{
 
 var daoGenesisHash = common.HexToHash("5e1fc79cb4ffa4739177b5408045cd5d51c6cf766133f23f7cd72ee1f8d790e0")
 var daoGenesisForkBlock = big.NewInt(314)
-
-// TestDAOForkBlockNewChain tests that the DAO hard-fork number and the nodes support/opposition is correctly
-// set in the database after various initialization procedures and invocations.
-func TestDAOForkBlockNewChain(t *testing.T) {
-	for i, arg := range []struct {
-		genesis     string
-		expectBlock *big.Int
-		expectVote  bool
-	}{
-		// Test DAO Default Mainnet
-		{"", params.MainnetChainConfig.DAOForkBlock, true},
-		// test DAO Init Old Privnet
-		{daoOldGenesis, nil, false},
-		// test DAO Default No Fork Privnet
-		{daoNoForkGenesis, daoGenesisForkBlock, false},
-		// test DAO Default Pro Fork Privnet
-		{daoProForkGenesis, daoGenesisForkBlock, true},
-	} {
-		testDAOForkBlockNewChain(t, i, arg.genesis, arg.expectBlock, arg.expectVote)
-	}
-}
 
 func testDAOForkBlockNewChain(t *testing.T, test int, genesis string, expectBlock *big.Int, expectVote bool) {
 	// Create a temporary data directory to use and inspect later

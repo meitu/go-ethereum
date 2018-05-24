@@ -22,10 +22,10 @@ import (
 	"io"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/internal/debug"
-	"gopkg.in/urfave/cli.v1"
 	"strings"
+
+	"github.com/ethereum/go-ethereum/cmd/utils"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // AppHelpTemplate is the test template for the default, global app help topic.
@@ -71,31 +71,12 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.KeyStoreDirFlag,
 			utils.NoUSBFlag,
 			utils.NetworkIdFlag,
-			utils.TestnetFlag,
-			utils.RinkebyFlag,
 			utils.SyncModeFlag,
 			utils.EthStatsURLFlag,
 			utils.IdentityFlag,
 			utils.LightServFlag,
 			utils.LightPeersFlag,
 			utils.LightKDFFlag,
-		},
-	},
-	{Name: "DEVELOPER CHAIN",
-		Flags: []cli.Flag{
-			utils.DeveloperFlag,
-			utils.DeveloperPeriodFlag,
-		},
-	},
-	{
-		Name: "ETHASH",
-		Flags: []cli.Flag{
-			utils.EthashCacheDirFlag,
-			utils.EthashCachesInMemoryFlag,
-			utils.EthashCachesOnDiskFlag,
-			utils.EthashDatasetDirFlag,
-			utils.EthashDatasetsInMemoryFlag,
-			utils.EthashDatasetsOnDiskFlag,
 		},
 	},
 	//{
@@ -178,8 +159,8 @@ var AppHelpFlagGroups = []flagGroup{
 		Name: "MINER",
 		Flags: []cli.Flag{
 			utils.MiningEnabledFlag,
-			utils.MinerThreadsFlag,
-			utils.EtherbaseFlag,
+			utils.ValidatorFlag,
+			utils.CoinbaseFlag,
 			utils.TargetGasLimitFlag,
 			utils.GasPriceFlag,
 			utils.ExtraDataFlag,
@@ -197,14 +178,6 @@ var AppHelpFlagGroups = []flagGroup{
 		Flags: []cli.Flag{
 			utils.VMEnableDebugFlag,
 		},
-	},
-	{
-		Name: "LOGGING AND DEBUGGING",
-		Flags: append([]cli.Flag{
-			utils.MetricsEnabledFlag,
-			utils.FakePoWFlag,
-			utils.NoCompactionFlag,
-		}, debug.Flags...),
 	},
 	{
 		Name:  "WHISPER (EXPERIMENTAL)",

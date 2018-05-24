@@ -160,10 +160,9 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard)
 	}
-	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
+	// Whisper must be explicitly enabled by specifying at least 1 whisper flag
 	shhEnabled := enableWhisper(ctx)
-	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperEnabledFlag.Name) && ctx.GlobalIsSet(utils.DeveloperFlag.Name)
-	if shhEnabled || shhAutoEnabled {
+	if shhEnabled {
 		if ctx.GlobalIsSet(utils.WhisperMaxMessageSizeFlag.Name) {
 			cfg.Shh.MaxMessageSize = uint32(ctx.Int(utils.WhisperMaxMessageSizeFlag.Name))
 		}
