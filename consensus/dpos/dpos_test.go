@@ -225,7 +225,7 @@ func TestKickoutCandidate(t *testing.T) {
 	}
 
 	// kickout not active candidates
-	assert.Equal(t, nil, epochContext.kickoutCandidate(epoch))
+	assert.Equal(t, nil, epochContext.kickoutValidator(epoch))
 
 	candidateTrie = epochContext.DposContext.CandidateTrie()
 	delegateTrie = epochContext.DposContext.DelegateTrie()

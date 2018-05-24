@@ -61,25 +61,25 @@ func (ec *EpochContext) countVotes() (votes map[common.Address]*big.Int, err err
 	return votes, nil
 }
 
-func (ec *EpochContext) kickoutCandidate(epoch int64) error {
+func (ec *EpochContext) kickoutValidator(epoch int64) error {
 	validators, err := ec.DposContext.GetValidators()
 	if err != nil {
-		return fmt.Errorf("failed to get candidates: %s", err)
+		return fmt.Errorf("failed to get validator: %s", err)
 	}
 	if len(validators) == 0 {
-		return errors.New("no candidates could be kickout")
+		return errors.New("no validator could be kickout")
 	}
 
 	epochDuration := epochInterval
 	// First epoch duration may lt epoch interval,
 	// while the first block time wouldn't always align with epoch interval,
 	// so caculate the first epoch duartion with first block time instead of epoch interval,
-	// prevent the candidates were kickout incorrectly.
+	// prevent the validators were kickout incorrectly.
 	if ec.TimeStamp-timeOfFirstBlock < epochInterval {
 		epochDuration = ec.TimeStamp - timeOfFirstBlock
 	}
 
-	needKickoutCandidates := sortableAddresses{}
+	needKickoutValidators := sortableAddresses{}
 	for _, validator := range validators {
 		key := make([]byte, 8)
 		binary.BigEndian.PutUint64(key, uint64(epoch))
@@ -90,29 +90,29 @@ func (ec *EpochContext) kickoutCandidate(epoch int64) error {
 		}
 		if cnt < epochDuration/blockInterval/epochSize/2 {
 			// not active validators need kickout
-			needKickoutCandidates = append(needKickoutCandidates, &sortableAddress{validator, big.NewInt(cnt)})
+			needKickoutValidators = append(needKickoutValidators, &sortableAddress{validator, big.NewInt(cnt)})
 		}
 	}
 	// no validators need kickout
-	needKickoutCandidateCnt := len(needKickoutCandidates)
-	if needKickoutCandidateCnt <= 0 {
+	needKickoutValidatorCnt := len(needKickoutValidators)
+	if needKickoutValidatorCnt <= 0 {
 		return nil
 	}
-	sort.Sort(sort.Reverse(needKickoutCandidates))
+	sort.Sort(sort.Reverse(needKickoutValidators))
 
 	candidateCount := 0
 	iter := trie.NewIterator(ec.DposContext.CandidateTrie().NodeIterator(nil))
 	for iter.Next() {
 		candidateCount++
-		if candidateCount >= needKickoutCandidateCnt+safeSize {
+		if candidateCount >= needKickoutValidatorCnt+safeSize {
 			break
 		}
 	}
 
-	for i, validator := range needKickoutCandidates {
+	for i, validator := range needKickoutValidators {
 		// ensure candidate count greater than or equal to safeSize
 		if candidateCount <= safeSize {
-			log.Info("No more candidate can be kickout", "prevEpochID", epoch, "candidateCount", candidateCount, "needKickoutCount", len(needKickoutCandidates)-i)
+			log.Info("No more candidate can be kickout", "prevEpochID", epoch, "candidateCount", candidateCount, "needKickoutCount", len(needKickoutValidators)-i)
 			return nil
 		}
 
@@ -163,7 +163,7 @@ func (ec *EpochContext) tryElect(genesis, parent *types.Header) error {
 	for i := prevEpoch; i < currentEpoch; i++ {
 		// if prevEpoch is not genesis, kickout not active candidate
 		if !prevEpochIsGenesis && iter.Next() {
-			if err := ec.kickoutCandidate(prevEpoch); err != nil {
+			if err := ec.kickoutValidator(prevEpoch); err != nil {
 				return err
 			}
 		}
