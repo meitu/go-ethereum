@@ -133,18 +133,17 @@ func (ec *EpochContext) lookupValidator(now int64) (validator common.Address, er
 		return common.Address{}, ErrInvalidMintBlockTime
 	}
 	offset /= blockInterval
-	offset %= maxValidatorSize
 
 	validators, err := ec.DposContext.GetValidators()
 	if err != nil {
 		return common.Address{}, err
 	}
-	if int(offset) < len(validators) {
-		validator = validators[offset]
-	} else {
+	validatorSize := len(validators)
+	if validatorSize == 0 {
 		return common.Address{}, errors.New("failed to lookup validator")
 	}
-	return validator, nil
+	offset %= int64(validatorSize)
+	return validators[offset], nil
 }
 
 func (ec *EpochContext) tryElect(genesis, parent *types.Header) error {
