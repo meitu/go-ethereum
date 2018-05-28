@@ -21,9 +21,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/core/vm"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/common/math"
+	"github.com/meitu/go-ethereum/core/vm"
 )
 
 type JSONLogger struct {

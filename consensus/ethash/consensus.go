@@ -24,13 +24,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/misc"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/common/math"
+	"github.com/meitu/go-ethereum/consensus"
+	"github.com/meitu/go-ethereum/consensus/misc"
+	"github.com/meitu/go-ethereum/core/state"
+	"github.com/meitu/go-ethereum/core/types"
+	"github.com/meitu/go-ethereum/params"
 	set "gopkg.in/fatih/set.v0"
 )
 

@@ -22,15 +22,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/core"
+	"github.com/meitu/go-ethereum/core/state"
+	"github.com/meitu/go-ethereum/core/types"
+	"github.com/meitu/go-ethereum/ethdb"
+	"github.com/meitu/go-ethereum/event"
+	"github.com/meitu/go-ethereum/log"
+	"github.com/meitu/go-ethereum/params"
+	"github.com/meitu/go-ethereum/rlp"
 )
 
 const (

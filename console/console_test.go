@@ -26,11 +26,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/internal/jsre"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/core"
+	"github.com/meitu/go-ethereum/eth"
+	"github.com/meitu/go-ethereum/internal/jsre"
+	"github.com/meitu/go-ethereum/node"
 )
 
 const (

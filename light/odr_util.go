@@ -20,11 +20,11 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/core"
+	"github.com/meitu/go-ethereum/core/types"
+	"github.com/meitu/go-ethereum/crypto"
+	"github.com/meitu/go-ethereum/rlp"
 )
 
 var sha3_nil = crypto.Keccak256Hash(nil)

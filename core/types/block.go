@@ -26,10 +26,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/common/hexutil"
+	"github.com/meitu/go-ethereum/crypto/sha3"
+	"github.com/meitu/go-ethereum/rlp"
 )
 
 var (

@@ -20,11 +20,11 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/common/math"
+	"github.com/meitu/go-ethereum/core/vm"
+	"github.com/meitu/go-ethereum/log"
+	"github.com/meitu/go-ethereum/params"
 )
 
 var (

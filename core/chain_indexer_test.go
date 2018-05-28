@@ -23,9 +23,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/core/types"
+	"github.com/meitu/go-ethereum/ethdb"
 )
 
 // Runs multiple tests with randomized parameters.

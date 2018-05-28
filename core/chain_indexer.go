@@ -23,11 +23,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/core/types"
+	"github.com/meitu/go-ethereum/ethdb"
+	"github.com/meitu/go-ethereum/event"
+	"github.com/meitu/go-ethereum/log"
 )
 
 // ChainIndexerBackend defines the methods needed to process chain segments in

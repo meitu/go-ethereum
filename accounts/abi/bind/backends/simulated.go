@@ -24,17 +24,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/meitu/go-ethereum"
+	"github.com/meitu/go-ethereum/accounts/abi/bind"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/common/math"
+	"github.com/meitu/go-ethereum/consensus/ethash"
+	"github.com/meitu/go-ethereum/core"
+	"github.com/meitu/go-ethereum/core/state"
+	"github.com/meitu/go-ethereum/core/types"
+	"github.com/meitu/go-ethereum/core/vm"
+	"github.com/meitu/go-ethereum/ethdb"
+	"github.com/meitu/go-ethereum/params"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.

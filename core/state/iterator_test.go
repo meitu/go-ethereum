@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/meitu/go-ethereum/common"
 )
 
 // Tests that the node iterator indeed walks over the entire database contents.

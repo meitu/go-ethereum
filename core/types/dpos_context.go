@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/meitu/go-ethereum/common"
+	"github.com/meitu/go-ethereum/crypto/sha3"
+	"github.com/meitu/go-ethereum/ethdb"
+	"github.com/meitu/go-ethereum/rlp"
+	"github.com/meitu/go-ethereum/trie"
 )
 
 type DposContext struct {
