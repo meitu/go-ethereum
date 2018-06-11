@@ -303,7 +303,7 @@ func (self *worker) wait() {
 		for result := range self.recv {
 			atomic.AddInt32(&self.atWork, -1)
 
-			if result == nil {
+			if result == nil || result.Block == nil {
 				continue
 			}
 			block := result.Block
