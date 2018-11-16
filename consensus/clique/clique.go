@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/meitu/go-ethereum/accounts"
 	"github.com/meitu/go-ethereum/common"
 	"github.com/meitu/go-ethereum/common/hexutil"
@@ -39,7 +40,6 @@ import (
 	"github.com/meitu/go-ethereum/params"
 	"github.com/meitu/go-ethereum/rlp"
 	"github.com/meitu/go-ethereum/rpc"
-	lru "github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -233,6 +233,10 @@ func New(config *params.CliqueConfig, db ethdb.Database) *Clique {
 // from the signature in the header's extra-data section.
 func (c *Clique) Author(header *types.Header) (common.Address, error) {
 	return ecrecover(header, c.signatures)
+}
+
+func (c *Clique) Coinbase(header *types.Header) (common.Address, error) {
+	return header.Coinbase
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules.
