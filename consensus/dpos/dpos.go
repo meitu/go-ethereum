@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/meitu/go-ethereum/accounts"
 	"github.com/meitu/go-ethereum/common"
 	"github.com/meitu/go-ethereum/consensus"
@@ -23,7 +24,6 @@ import (
 	"github.com/meitu/go-ethereum/rlp"
 	"github.com/meitu/go-ethereum/rpc"
 	"github.com/meitu/go-ethereum/trie"
-	lru "github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -141,6 +141,10 @@ func New(config *params.DposConfig, db ethdb.Database) *Dpos {
 
 func (d *Dpos) Author(header *types.Header) (common.Address, error) {
 	return header.Validator, nil
+}
+
+func (d *Dpos) Coinbase(header *types.Header) (common.Address, error) {
+	return header.Coinbase, nil
 }
 
 func (d *Dpos) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
