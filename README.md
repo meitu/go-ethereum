@@ -1,5 +1,9 @@
 ## Go Ethereum
 
+```
+This is a fork of ethereum/go-ethereum supports DPoS consensus algorithm
+```
+
 Official golang implementation of the Ethereum protocol. This project is an experiment, transforming its consensus algorithm into dpos.
 
 [![API Reference](
