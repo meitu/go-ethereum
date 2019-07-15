@@ -94,8 +94,9 @@ func ApplyTransaction(config *params.ChainConfig, dposContext *types.DposContext
 		return nil, nil, err
 	}
 
-	if msg.To() == nil && msg.Type() != types.Binary {
-		return nil, nil, types.ErrInvalidType
+	err = tx.Validate()
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// Create a new context to be used in the EVM environment
